@@ -56,6 +56,7 @@
         .feedback { font-weight: 600; margin-top: 15px; padding: 12px; border-radius: 5px; display: none; text-align: left; }
         .feedback.correct { background: #e8f5e9; color: var(--success); display: block; border-left: 5px solid var(--success); }
         .feedback.incorrect { background: #ffebee; color: var(--error); display: block; border-left: 5px solid var(--error); }
+        .hints-container { margin-top: 10px; }
         
         .flex-row { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
         canvas { max-width: 100%; margin-top: 15px; background: white; border-radius: 5px; }
@@ -96,14 +97,15 @@
         <div class="step-block">
             <p><strong>2. Find the points of intersection:</strong> Where does \( y = \text{LHS} \) meet \( y = \text{RHS} \)?</p>
             <div class="flex-row">
-                \( x_1 = \) <input type="text" id="m1-root1" placeholder="e.g. -3/2"> 
-                and \( x_2 = \) <input type="text" id="m1-root2" placeholder="e.g. 5">
+                \( x_1 = \) <input type="text" id="m1-root1" placeholder="-3/2"> 
+                and \( x_2 = \) <input type="text" id="m1-root2" placeholder="5">
             </div>
             <div class="flex-row">
                 <button onclick="checkMethod1Roots()">Check Intersections</button>
                 <button class="hint-btn" onclick="showHint('m1')">Hint</button>
             </div>
             <div id="m1-feedback" class="feedback"></div>
+            <div id="m1-hints" class="hints-container"></div>
         </div>
     </div>
 
@@ -123,6 +125,7 @@
                 <button class="hint-btn" onclick="showHint('m2')">Hint</button>
             </div>
             <div id="m2-feedback" class="feedback"></div>
+            <div id="m2-hints" class="hints-container"></div>
         </div>
     </div>
 
@@ -139,6 +142,7 @@
                 <button class="hint-btn" onclick="showHint('m3')">Hint</button>
             </div>
             <div id="m3-feedback" class="feedback"></div>
+            <div id="m3-hints" class="hints-container"></div>
         </div>
     </div>
 
@@ -162,7 +166,7 @@
     // Function to parse input fields that might contain fractions like "1/2" or "-7/3"
     function parseInput(val) {
         if (!val) return NaN;
-        val = val.replace(/\\s/g, ''); // Remove spaces
+        val = val.replace(/\s/g, ''); // Remove spaces safely
         if (val.includes('/')) {
             let parts = val.split('/');
             if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1]) && parts[1] !== '0') {
@@ -198,7 +202,8 @@
         let rootBase = Math.floor(Math.random() * 4) + 1; 
         let k = a * rootBase; 
         
-        let ops = ['<', '\\le', '>', '\\ge'];
+        // IMPORTANT: Use HTML entities &lt; and &gt; instead of < and > to prevent DOM breaking!
+        let ops = ['&lt;', '\\le', '&gt;', '\\ge'];
         let opStrs = ['<', '<=', '>', '>='];
         let opIdx = Math.floor(Math.random() * 4);
         
@@ -230,16 +235,16 @@
         hintsState = { m1: 0, m2: 0, m3: 0 };
         prob.hints = {
             m1: [
-                "To find the intersections algebraically, drop the inequality and solve \\( " + prob.exprDisplay + " = " + k + " \\) and \\( " + prob.exprDisplay + " = -" + k + " \\).",
-                "Isolate \\( x \\) in both of those linear equations to find your two root values."
+                `To find the intersections algebraically, drop the inequality and solve \\( ${prob.exprDisplay} = ${k} \\) and \\( ${prob.exprDisplay} = -${k} \\).`,
+                `Isolate \\( x \\) in both of those linear equations to find your two root values.`
             ],
             m2: [
-                "Factor out the coefficient of \\( x \\), which is " + a + ".",
-                "Divide both the inside term \\( " + b + " \\) and the right side \\( " + k + " \\) by " + a + " to find your center and radius."
+                `Factor out the coefficient of \\( x \\), which is ${a}.`,
+                `Divide both the inside term \\( ${b} \\) and the right side \\( ${k} \\) by ${a} to find your center and radius.`
             ],
             m3: [
-                prob.isGreater ? "For a 'greater than' absolute value, it splits into an OR statement: expression < -k OR expression > k." : "For a 'less than' absolute value, it sandwiches into an AND statement: -k < expression < k.",
-                "Make sure to use \\( " + k + " \\) and \\( -" + k + " \\) as your bounds."
+                prob.isGreater ? `For a 'greater than' absolute value, it splits into an OR statement: expression &lt; -k OR expression &gt; k.` : `For a 'less than' absolute value, it sandwiches into an AND statement: -k &lt; expression &lt; k.`,
+                `Make sure to use \\( ${k} \\) and \\( -${k} \\) as your bounds.`
             ]
         };
 
@@ -280,7 +285,7 @@
         let inputRoots = [r1, r2].sort((x, y) => x - y);
 
         if (almostEqual(inputRoots[0], prob.roots[0]) && almostEqual(inputRoots[1], prob.roots[1])) {
-            showFeedback('m1', "Correct! Look at the graph to see where the V-shape is " + (prob.isGreater ? "above" : "below") + " the line to formulate your final answer.", true);
+            showFeedback('m1', `Correct! Look at the graph to see where the V-shape is ${prob.isGreater ? "above" : "below"} the line to formulate your final answer.`, true);
         } else {
             showFeedback('m1', "Incorrect. Use the hint button if you are stuck solving for the intersections.", false);
         }
@@ -309,13 +314,14 @@
     // --- METHOD 3: ALGEBRAIC DEFINITION ---
     function setupMethod3UI() {
         let area = document.getElementById('m3-setup-area');
-        let sign = prob.isInclusive ? '\\le' : '<';
+        let sign = prob.isInclusive ? '\\le' : '&lt;'; // Escaped safely
+        let signG = prob.isInclusive ? '\\ge' : '&gt;'; // Escaped safely
         
         if (prob.isGreater) {
             area.innerHTML = `
-                \\( ${prob.exprDisplay} \\) <input type="text" id="m3-val1"> 
+                \\( ${prob.exprDisplay} ${sign} \\) <input type="text" id="m3-val1"> 
                 <span style="margin: 0 15px; font-weight: bold;">OR</span> 
-                \\( ${prob.exprDisplay} \\) <input type="text" id="m3-val2">
+                \\( ${prob.exprDisplay} ${signG} \\) <input type="text" id="m3-val2">
             `;
         } else {
             area.innerHTML = `
@@ -339,15 +345,15 @@
     // --- FINAL ANSWER ---
     function setupFinalAnswerUI() {
         let html = '';
-        let signL = prob.isInclusive ? '\\le' : '<';
-        let signG = prob.isInclusive ? '\\ge' : '>';
+        let signL = prob.isInclusive ? '\\le' : '&lt;';
+        let signG = prob.isInclusive ? '\\ge' : '&gt;';
         
         if (prob.isGreater) {
-            html = `\\( x ${signL} \\) <input type="text" id="final-lower" placeholder="e.g. -3/2"> 
+            html = `\\( x ${signL} \\) <input type="text" id="final-lower" placeholder="-3/2"> 
                     <span style="margin: 0 15px; font-weight: bold;">OR</span> 
-                    \\( x ${signG} \\) <input type="text" id="final-upper" placeholder="e.g. 5">`;
+                    \\( x ${signG} \\) <input type="text" id="final-upper" placeholder="5">`;
         } else {
-            html = `<input type="text" id="final-lower" placeholder="e.g. -3/2"> \\( ${signL} x ${signL} \\) <input type="text" id="final-upper" placeholder="e.g. 5">`;
+            html = `<input type="text" id="final-lower" placeholder="-3/2"> \\( ${signL} x ${signL} \\) <input type="text" id="final-upper" placeholder="5">`;
         }
         document.getElementById('final-input-area').innerHTML = html;
     }
@@ -360,6 +366,10 @@
             showFeedback('final', "Excellent! You have successfully solved the absolute value inequation.", true);
             document.getElementById('number-line-container').style.display = 'block';
             drawNumberLine();
+            
+
+[Image of absolute value inequality on a number line]
+
         } else {
             showFeedback('final', "Not quite. Check your algebra or test points again. You can use any of the Methods above to verify your steps.", false);
         }
@@ -414,9 +424,8 @@
         let hintsArray = prob.hints[method];
         
         if (index < hintsArray.length) {
-            let fb = document.getElementById(`${method}-feedback`);
-            fb.innerHTML += `<div style="margin-top: 8px; font-weight: normal; color: #5a4a00; background: #fffcf0; padding: 10px; border-left: 4px solid var(--secondary);"><strong>Hint ${index + 1}:</strong> ${hintsArray[index]}</div>`;
-            fb.style.display = 'block';
+            let container = document.getElementById(`${method}-hints`);
+            container.innerHTML += `<div style="margin-top: 8px; font-weight: normal; color: #5a4a00; background: #fffcf0; padding: 10px; border-left: 4px solid var(--secondary);"><strong>Hint ${index + 1}:</strong> ${hintsArray[index]}</div>`;
             hintsState[method]++;
             renderMath();
         }
@@ -424,11 +433,7 @@
 
     function showFeedback(type, msg, isCorrect) {
         let fb = document.getElementById(`${type}-feedback`);
-        if (isCorrect) {
-            fb.innerHTML = msg;
-        } else {
-            fb.innerHTML = `<div>${msg}</div>` + fb.innerHTML.replace(/<div>Incorrect.*?<\\/div>/g, '');
-        }
+        fb.innerHTML = msg; 
         fb.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
         fb.style.display = 'block';
     }
@@ -436,6 +441,7 @@
     function resetUI() {
         document.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
         document.querySelectorAll('.feedback').forEach(fb => { fb.style.display = 'none'; fb.innerHTML = ''; });
+        document.querySelectorAll('.hints-container').forEach(hc => hc.innerHTML = '');
         document.getElementById('chart-container').style.display = 'none';
         document.getElementById('number-line-container').style.display = 'none';
         if(chartInstance) chartInstance.destroy();
