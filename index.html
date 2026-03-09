@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absolute Value Inequations: 3 Methods (Meriden Edition)</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #002244; 
+            --secondary: #EAAA00; 
+            --primary-light: #003366;
+            --bg: #f4f6f8; 
+            --surface: #ffffff;
+            --text: #222222; 
+            --border: #cccccc; 
+            --error: #d32f2f; 
+            --success: #2e7d32;
+            --font-heading: 'Merriweather', serif;
+            --font-body: 'Open Sans', sans-serif;
+        }
+        body { font-family: var(--font-body); background: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
+        .container { max-width: 900px; margin: auto; background: var(--surface); padding: 30px; border-radius: 10px; box-shadow: 0 6px 15px rgba(0,34,68,0.1); border-top: 6px solid var(--primary); }
+        h1, h2, h3 { font-family: var(--font-heading); color: var(--primary); }
+        h1 { border-bottom: 2px solid var(--secondary); padding-bottom: 10px; }
+        h2 { margin-top: 0; font-size: 1.4em; }
+        h3 { margin-top: 0; font-size: 1.2em; color: var(--primary-light); }
+        
+        .problem-container { background: #fdfdfd; padding: 25px; border-radius: 8px; border: 2px solid var(--primary); margin-bottom: 20px; text-align: center; }
+        .problem-text { font-size: 1.8em; color: var(--primary); font-weight: bold; margin: 10px 0; }
+        
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid var(--primary); flex-wrap: wrap; }
+        .tab { padding: 10px 20px; cursor: pointer; background: #e9ecef; border: 1px solid var(--border); border-bottom: none; margin-right: 5px; border-radius: 5px 5px 0 0; font-weight: 600; color: var(--primary); transition: 0.2s; }
+        .tab:hover { background: #dce1e6; }
+        .tab.active { background: var(--surface); color: var(--primary); border: 2px solid var(--primary); border-bottom: 2px solid var(--surface); margin-bottom: -2px; border-top: 4px solid var(--secondary); }
+        .tab-content { display: none; background: #fdfdfd; padding: 25px; border-radius: 0 0 8px 8px; border: 1px solid var(--border); border-top: none; }
+        .tab-content.active { display: block; }
+        
+        .final-answer-box { background: #fffcf0; padding: 25px; border-radius: 8px; border: 2px solid var(--secondary); margin-top: 30px; text-align: center; }
+        
+        button { background-color: var(--primary); color: white; border: 2px solid var(--primary); padding: 10px 18px; cursor: pointer; border-radius: 5px; font-size: 15px; font-weight: 600; margin-top: 10px; transition: all 0.2s; font-family: var(--font-body); }
+        button:hover { background-color: var(--primary-light); }
+        button.new-prob-btn { background-color: #6c757d; border-color: #6c757d; }
+        button.new-prob-btn:hover { background-color: #5a6268; }
+
+        input[type="text"], input[type="number"] { padding: 8px; font-size: 16px; width: 70px; text-align: center; margin: 0 5px; border: 1px solid #aaa; border-radius: 4px; font-family: var(--font-body); }
+        input[type="text"]:focus, input[type="number"]:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 5px rgba(234, 170, 0, 0.5); }
+        input.wide-input { width: 120px; }
+
+        .feedback { font-weight: 600; margin-top: 15px; padding: 12px; border-radius: 5px; display: none; text-align: left; }
+        .feedback.correct { background: #e8f5e9; color: var(--success); display: block; border-left: 5px solid var(--success); }
+        .feedback.incorrect { background: #ffebee; color: var(--error); display: block; border-left: 5px solid var(--error); }
+        
+        .flex-row { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
+        canvas { max-width: 100%; margin-top: 15px; background: white; border-radius: 5px; }
+        #chart-container { width: 100%; height: 350px; display: none; margin-top: 20px; }
+        #number-line-container { width: 100%; height: 100px; display: none; margin-top: 20px; }
+        
+        .step-block { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed var(--border); }
+        .step-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Solving Absolute Value Inequations</h1>
+    <p><strong>Year 11 Mathematics Extension 1 - Chapter 6A</strong><br>Explore the three different methods to solve the generated problem. They will all lead you to the same final answer!</p>
+
+    <div class="problem-container">
+        <h2>Current Problem</h2>
+        <div id="master-problem" class="problem-text"></div>
+        <button class="new-prob-btn" onclick="generateProblem()">Generate New Problem</button>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('method1')">Method 1: Graphing</div>
+        <div class="tab" onclick="switchTab('method2')">Method 2: Algebraic Definition</div>
+        <div class="tab" onclick="switchTab('method3')">Method 3: Squaring Both Sides</div>
+    </div>
+
+    <div id="method1" class="tab-content active">
+        <h3>Method 1: Sketching the Graph</h3>
+        <p>Sketch the graph of the absolute value function (LHS) and the horizontal line (RHS). The solution depends on where the V-shape is above or below the line.</p>
+        
+        <div class="step-block">
+            <button onclick="drawGraph()">1. Show Graph</button>
+            <div id="chart-container"><canvas id="absChart"></canvas></div>
+        </div>
+
+        <div class="step-block">
+            <p><strong>2. Find the points of intersection:</strong> Where does \( y = \text{LHS} \) meet \( y = \text{RHS} \)?</p>
+            <div class="flex-row">
+                \( x_1 = \) <input type="number" id="m1-root1" step="any"> 
+                and \( x_2 = \) <input type="number" id="m1-root2" step="any">
+                <button onclick="checkMethod1Roots()">Check Intersections</button>
+            </div>
+            <div id="m1-feedback" class="feedback"></div>
+        </div>
+    </div>
+
+    <div id="method2" class="tab-content">
+        <h3>Method 2: Using the Definition</h3>
+        <p>By definition, an absolute value relates to distance. We can remove the absolute value signs by splitting the inequation into standard linear components.</p>
+        
+        <div class="step-block">
+            <p><strong>1. Rewrite the inequation:</strong> Based on the inequality sign, set up the linear boundaries.</p>
+            <div id="m2-setup-area" class="flex-row">
+                </div>
+            <div class="flex-row">
+                <button onclick="checkMethod2Setup()">Check Setup</button>
+            </div>
+            <div id="m2-feedback" class="feedback"></div>
+        </div>
+    </div>
+
+    <div id="method3" class="tab-content">
+        <h3>Method 3: Squaring Both Sides</h3>
+        <p>Because the absolute value is positive and the RHS is positive, we can square both sides to remove the absolute value without altering the inequality.</p>
+        
+        <div class="step-block">
+            <p><strong>1. Expand and form a quadratic:</strong> \( (\text{LHS})^2 \) <span id="m3-op-display"></span> \( (\text{RHS})^2 \)</p>
+            <p>Bring all terms to the left side to form \( Ax^2 + Bx + C \) <span id="m3-op-display-2"></span> \( 0 \).</p>
+            <div class="flex-row" style="font-size: 1.2em;">
+                <input type="number" id="m3-a"> \( x^2 + \) 
+                <input type="number" id="m3-b"> \( x + \) 
+                <input type="number" id="m3-c"> 
+                <span id="m3-op-display-3" style="font-weight: bold; margin-left: 10px;"></span> \( 0 \)
+            </div>
+            <div class="flex-row">
+                <button onclick="checkMethod3Quadratic()">Check Quadratic</button>
+            </div>
+            <div id="m3-feedback" class="feedback"></div>
+        </div>
+    </div>
+
+    <div class="final-answer-box">
+        <h2>Final Answer</h2>
+        <p>Use the results from your chosen method to state the final solution for \( x \).</p>
+        <div id="final-input-area" class="flex-row" style="font-size: 1.3em;">
+            </div>
+        <button onclick="checkFinalAnswer()" style="background-color: var(--secondary); color: var(--primary); border-color: var(--primary);">Verify Solution</button>
+        <div id="final-feedback" class="feedback"></div>
+        <div id="number-line-container"><canvas id="numberLineCanvas"></canvas></div>
+    </div>
+
+</div>
+
+<script>
+    let chartInstance = null;
+    let prob = {};
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    function renderMath() { 
+        if (window.MathJax) {
+            MathJax.typesetPromise().catch((err) => console.log('MathJax error:', err));
+        }
+    }
+
+    // --- CORE PROBLEM GENERATOR ---
+    function generateProblem() {
+        // Generate parameters: |ax + b| op k
+        let a = Math.floor(Math.random() * 3) + 1; // 1 to 3
+        let b = Math.floor(Math.random() * 10) - 5; // -5 to 4
+        // To ensure methods work cleanly, k must be > 0.
+        // Make k a multiple of 'a' offset by 'b' to ensure clean integer/fraction roots
+        let rootBase = Math.floor(Math.random() * 4) + 1; 
+        let k = a * rootBase; 
+        
+        let ops = ['<', '\\le', '>', '\\ge'];
+        let opStrs = ['<', '<=', '>', '>='];
+        let opIdx = Math.floor(Math.random() * 4);
+        
+        prob = {
+            a: a,
+            b: b,
+            k: k,
+            opLaTeX: ops[opIdx],
+            opStr: opStrs[opIdx],
+            isGreater: opIdx >= 2,
+            isInclusive: opIdx % 2 === 1
+        };
+
+        // Calculate roots (intersections)
+        let r1 = (-k - b) / a;
+        let r2 = (k - b) / a;
+        prob.roots = [r1, r2].sort((x, y) => x - y);
+
+        // Calculate quadratic coefficients for Method 3: (ax+b)^2 - k^2 = 0
+        // a^2 x^2 + 2ab x + b^2 - k^2 = 0
+        prob.quadA = a * a;
+        prob.quadB = 2 * a * b;
+        prob.quadC = (b * b) - (k * k);
+
+        // Render Strings
+        let termX = a === 1 ? 'x' : `${a}x`;
+        let termB = b === 0 ? '' : (b > 0 ? ` + ${b}` : ` - ${Math.abs(b)}`);
+        prob.lhsDisplay = `|${termX}${termB}|`;
+        prob.exprDisplay = `${termX}${termB}`;
+
+        // Update UI
+        document.getElementById('master-problem').innerHTML = `\\( ${prob.lhsDisplay} ${prob.opLaTeX} ${prob.k} \\)`;
+        
+        setupMethod2UI();
+        setupMethod3UI();
+        setupFinalAnswerUI();
+        resetUI();
+        renderMath();
+    }
+
+    // --- METHOD 1: GRAPHING ---
+    function drawGraph() {
+        document.getElementById('chart-container').style.display = 'block';
+        let ctx = document.getElementById('absChart').getContext('2d');
+        
+        let xVals = [], yAbs = [], yK = [];
+        let range = Math.max(Math.abs(prob.roots[0]), Math.abs(prob.roots[1])) + 4;
+        
+        for(let x = -range; x <= range; x += 0.5) {
+            xVals.push(x);
+            yAbs.push(Math.abs(prob.a * x + prob.b));
+            yK.push(prob.k);
+        }
+
+        if(chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: xVals,
+                datasets: [
+                    { label: `y = ${prob.lhsDisplay}`, data: yAbs, borderColor: '#002244', fill: false, tension: 0.1, borderWidth: 3, pointRadius: 0 },
+                    { label: `y = ${prob.k}`, data: yK, borderColor: '#EAAA00', borderDash: [5, 5], fill: false, borderWidth: 2, pointRadius: 0 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    function checkMethod1Roots() {
+        let r1 = parseFloat(document.getElementById('m1-root1').value);
+        let r2 = parseFloat(document.getElementById('m1-root2').value);
+        let inputRoots = [r1, r2].sort((x, y) => x - y);
+
+        if (inputRoots[0] === prob.roots[0] && inputRoots[1] === prob.roots[1]) {
+            showFeedback('m1', "Correct! These are the critical points where the graph intersects the line. Now look at the graph to see where the V-shape is " + (prob.isGreater ? "above" : "below") + " the line to formulate your final answer.", true);
+        } else {
+            showFeedback('m1', "Incorrect. Try solving the equations \\( " + prob.exprDisplay + " = " + prob.k + " \\) and \\( " + prob.exprDisplay + " = -" + prob.k + " \\).", false);
+            renderMath();
+        }
+    }
+
+    // --- METHOD 2: ALGEBRAIC DEFINITION ---
+    function setupMethod2UI() {
+        let area = document.getElementById('m2-setup-area');
+        let sign = prob.isInclusive ? '\\le' : '<';
+        let signG = prob.isInclusive ? '\\ge' : '>';
+        
+        if (prob.isGreater) {
+            area.innerHTML = `
+                \\( ${prob.exprDisplay} \\) <input type="number" id="m2-val1"> 
+                <span style="margin: 0 15px; font-weight: bold;">OR</span> 
+                \\( ${prob.exprDisplay} \\) <input type="number" id="m2-val2">
+                <br><small style="width: 100%; text-align: center; margin-top: 5px;">(Enter the correct boundary values and signs mentally: one should be < negative, one should be > positive)</small>
+            `;
+        } else {
+            area.innerHTML = `
+                <input type="number" id="m2-val1"> \\( ${sign} ${prob.exprDisplay} ${sign} \\) <input type="number" id="m2-val2">
+            `;
+        }
+    }
+
+    function checkMethod2Setup() {
+        let v1 = parseFloat(document.getElementById('m2-val1').value);
+        let v2 = parseFloat(document.getElementById('m2-val2').value);
+        
+        let correctV1 = prob.isGreater ? -prob.k : -prob.k;
+        let correctV2 = prob.isGreater ? prob.k : prob.k;
+
+        if (v1 === correctV1 && v2 === correctV2) {
+            showFeedback('m2', "Correct setup! Now you just need to solve for \\( x \\) by isolating it to find your final answer.", true);
+            renderMath();
+        } else {
+            showFeedback('m2', "Incorrect. Remember the definition: if distance is " + (prob.isGreater ? "> k, then expression < -k OR expression > k." : "< k, then -k < expression < k."), false);
+        }
+    }
+
+    // --- METHOD 3: SQUARING ---
+    function setupMethod3UI() {
+        document.getElementById('m3-op-display').innerText = prob.opLaTeX;
+        document.getElementById('m3-op-display-2').innerText = prob.opLaTeX;
+        document.getElementById('m3-op-display-3').innerText = prob.opLaTeX;
+    }
+
+    function checkMethod3Quadratic() {
+        let a = parseFloat(document.getElementById('m3-a').value);
+        let b = parseFloat(document.getElementById('m3-b').value);
+        let c = parseFloat(document.getElementById('m3-c').value);
+
+        if (a === prob.quadA && b === prob.quadB && c === prob.quadC) {
+            showFeedback('m3', "Spot on! You expanded the binomial and subtracted \\( " + (prob.k * prob.k) + " \\) correctly. Now factor or use the quadratic formula to find the critical points, and test regions to get the final answer.", true);
+            renderMath();
+        } else {
+            showFeedback('m3', "Check your expansion. Remember: \\( (ax+b)^2 = a^2x^2 + 2abx + b^2 \\), and don't forget to subtract \\( k^2 \\) from both sides.", false);
+            renderMath();
+        }
+    }
+
+    // --- FINAL ANSWER ---
+    function setupFinalAnswerUI() {
+        let html = '';
+        let signL = prob.isInclusive ? '\\le' : '<';
+        let signG = prob.isInclusive ? '\\ge' : '>';
+        
+        if (prob.isGreater) {
+            html = `\\( x ${signL} \\) <input type="number" id="final-lower" step="any"> 
+                    <span style="margin: 0 15px; font-weight: bold;">OR</span> 
+                    \\( x ${signG} \\) <input type="number" id="final-upper" step="any">`;
+        } else {
+            html = `<input type="number" id="final-lower" step="any"> \\( ${signL} x ${signL} \\) <input type="number" id="final-upper" step="any">`;
+        }
+        document.getElementById('final-input-area').innerHTML = html;
+    }
+
+    function checkFinalAnswer() {
+        let lower = parseFloat(document.getElementById('final-lower').value);
+        let upper = parseFloat(document.getElementById('final-upper').value);
+
+        if (lower === prob.roots[0] && upper === prob.roots[1]) {
+            showFeedback('final', "Excellent! You have successfully solved the absolute value inequation.", true);
+            document.getElementById('number-line-container').style.display = 'block';
+            drawNumberLine();
+            
+
+[Image of absolute value inequality on a number line]
+
+        } else {
+            showFeedback('final', "Not quite. Check your algebra or test points again. You can use any of the 3 Methods above to verify your steps.", false);
+        }
+    }
+
+    function drawNumberLine() {
+        let canvas = document.getElementById('numberLineCanvas');
+        let ctx = canvas.getContext('2d');
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = 100;
+        let w = canvas.width, h = canvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+        
+        // Base line
+        ctx.beginPath(); ctx.moveTo(20, h/2); ctx.lineTo(w-20, h/2);
+        ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+
+        let minDraw = prob.roots[0] - 2, maxDraw = prob.roots[1] + 2;
+        let scale = (w - 100) / (maxDraw - minDraw);
+
+        // Ticks
+        ctx.font = "bold 14px 'Open Sans'"; ctx.textAlign = "center"; ctx.fillStyle = '#222';
+        for(let i = Math.floor(minDraw); i <= Math.ceil(maxDraw); i++) {
+            let x = 50 + (i - minDraw) * scale;
+            ctx.beginPath(); ctx.moveTo(x, h/2 - 6); ctx.lineTo(x, h/2 + 6); ctx.stroke();
+            ctx.fillText(i, x, h/2 + 25);
+        }
+
+        let x1 = 50 + (prob.roots[0] - minDraw) * scale;
+        let x2 = 50 + (prob.roots[1] - minDraw) * scale;
+        
+        ctx.strokeStyle = '#002244'; ctx.lineWidth = 6; 
+        
+        if (prob.isGreater) {
+            ctx.beginPath(); ctx.moveTo(20, h/2); ctx.lineTo(x1, h/2); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x2, h/2); ctx.lineTo(w-20, h/2); ctx.stroke();
+        } else {
+            ctx.beginPath(); ctx.moveTo(x1, h/2); ctx.lineTo(x2, h/2); ctx.stroke();
+        }
+        
+        // Circles
+        ctx.beginPath(); ctx.arc(x1, h/2, 5, 0, 2*Math.PI); 
+        ctx.fillStyle = prob.isInclusive ? '#002244' : '#fff'; 
+        ctx.fill(); ctx.lineWidth = 2; ctx.stroke();
+        
+        ctx.beginPath(); ctx.arc(x2, h/2, 5, 0, 2*Math.PI); 
+        ctx.fillStyle = prob.isInclusive ? '#002244' : '#fff'; 
+        ctx.fill(); ctx.stroke();
+    }
+
+    function showFeedback(type, msg, isCorrect) {
+        let fb = document.getElementById(`${type}-feedback`);
+        fb.innerHTML = msg;
+        fb.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+    }
+
+    function resetUI() {
+        document.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
+        document.querySelectorAll('.feedback').forEach(fb => { fb.style.display = 'none'; fb.innerHTML = ''; });
+        document.getElementById('chart-container').style.display = 'none';
+        document.getElementById('number-line-container').style.display = 'none';
+        if(chartInstance) chartInstance.destroy();
+    }
+
+    // Initialize
+    window.onload = () => { generateProblem(); };
+</script>
+
+</body>
+</html>
