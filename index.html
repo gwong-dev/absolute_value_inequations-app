@@ -50,8 +50,8 @@
         button.hint-btn { background-color: var(--surface); color: var(--primary); border: 2px solid var(--secondary); margin-left: 10px; }
         button.hint-btn:hover { background-color: var(--secondary); color: var(--primary); }
 
-        input[type="text"], input[type="number"] { padding: 8px; font-size: 16px; width: 80px; text-align: center; margin: 0 5px; border: 1px solid #aaa; border-radius: 4px; font-family: var(--font-body); }
-        input[type="text"]:focus, input[type="number"]:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 5px rgba(234, 170, 0, 0.5); }
+        input[type="text"] { padding: 8px; font-size: 16px; width: 80px; text-align: center; margin: 0 5px; border: 1px solid #aaa; border-radius: 4px; font-family: var(--font-body); }
+        input[type="text"]:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 5px rgba(234, 170, 0, 0.5); }
 
         .feedback { font-weight: 600; margin-top: 15px; padding: 12px; border-radius: 5px; display: none; text-align: left; }
         .feedback.correct { background: #e8f5e9; color: var(--success); display: block; border-left: 5px solid var(--success); }
@@ -163,10 +163,9 @@
     let prob = {};
     let hintsState = { m1: 0, m2: 0, m3: 0 };
 
-    // Function to parse input fields that might contain fractions like "1/2" or "-7/3"
     function parseInput(val) {
         if (!val) return NaN;
-        val = val.replace(/\s/g, ''); // Remove spaces safely
+        val = val.replace(/\s/g, ''); 
         if (val.includes('/')) {
             let parts = val.split('/');
             if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1]) && parts[1] !== '0') {
@@ -176,7 +175,6 @@
         return parseFloat(val);
     }
 
-    // Helper to allow decimal answers instead of strict fraction matches
     function almostEqual(a, b) {
         if (isNaN(a) || isNaN(b)) return false;
         return Math.abs(a - b) < 0.02;
@@ -195,22 +193,19 @@
         }
     }
 
-    // --- CORE PROBLEM GENERATOR ---
     function generateProblem() {
-        let a = Math.floor(Math.random() * 3) + 1; // 1 to 3
-        let b = Math.floor(Math.random() * 10) - 5; // -5 to 4
+        let a = Math.floor(Math.random() * 3) + 1; 
+        let b = Math.floor(Math.random() * 10) - 5; 
         let rootBase = Math.floor(Math.random() * 4) + 1; 
         let k = a * rootBase; 
         
-        // IMPORTANT: Use HTML entities &lt; and &gt; instead of < and > to prevent DOM breaking!
-        let ops = ['&lt;', '\\le', '&gt;', '\\ge'];
-        let opStrs = ['<', '<=', '>', '>='];
+        // Use MathJax safe operators
+        let ops = ['\\lt', '\\le', '\\gt', '\\ge'];
         let opIdx = Math.floor(Math.random() * 4);
         
         prob = {
             a: a, b: b, k: k,
             opLaTeX: ops[opIdx],
-            opStr: opStrs[opIdx],
             isGreater: opIdx >= 2,
             isInclusive: opIdx % 2 === 1
         };
@@ -231,7 +226,6 @@
         setupFinalAnswerUI();
         resetUI();
         
-        // Reset Hints Data
         hintsState = { m1: 0, m2: 0, m3: 0 };
         prob.hints = {
             m1: [
@@ -243,7 +237,7 @@
                 `Divide both the inside term \\( ${b} \\) and the right side \\( ${k} \\) by ${a} to find your center and radius.`
             ],
             m3: [
-                prob.isGreater ? `For a 'greater than' absolute value, it splits into an OR statement: expression &lt; -k OR expression &gt; k.` : `For a 'less than' absolute value, it sandwiches into an AND statement: -k &lt; expression &lt; k.`,
+                prob.isGreater ? `For a 'greater than' absolute value, it splits into an OR statement: expression \\(\\lt -${k}\\) OR expression \\(\\gt ${k}\\).` : `For a 'less than' absolute value, it sandwiches into an AND statement: \\(-${k} \\lt\\) expression \\(\\lt ${k}\\).`,
                 `Make sure to use \\( ${k} \\) and \\( -${k} \\) as your bounds.`
             ]
         };
@@ -251,7 +245,6 @@
         renderMath();
     }
 
-    // --- METHOD 1: GRAPHING ---
     function drawGraph() {
         document.getElementById('chart-container').style.display = 'block';
         let ctx = document.getElementById('absChart').getContext('2d');
@@ -291,7 +284,6 @@
         }
     }
 
-    // --- METHOD 2: NUMBER LINE DISTANCE ---
     function setupMethod2UI() {
         document.getElementById('m2-op-display').innerHTML = `\\( ${prob.opLaTeX} \\)`;
     }
@@ -304,18 +296,17 @@
         let correctRadius = prob.k / prob.a;
 
         if (almostEqual(centerInput, correctCenter) && almostEqual(radiusInput, correctRadius)) {
-            showFeedback('m2', `Correct! This means the distance from \\( x \\) to \\( ${correctCenter} \\) is ${prob.opStr} \\( ${correctRadius} \\). Use this to find your final boundaries!`, true);
+            showFeedback('m2', `Correct! This means the distance from \\( x \\) to \\( ${correctCenter} \\) is \\( ${prob.opLaTeX} ${correctRadius} \\). Use this to find your final boundaries!`, true);
             renderMath();
         } else {
             showFeedback('m2', "Incorrect. Did you divide both terms inside the absolute value, and the right-hand side, by the coefficient of x?", false);
         }
     }
 
-    // --- METHOD 3: ALGEBRAIC DEFINITION ---
     function setupMethod3UI() {
         let area = document.getElementById('m3-setup-area');
-        let sign = prob.isInclusive ? '\\le' : '&lt;'; // Escaped safely
-        let signG = prob.isInclusive ? '\\ge' : '&gt;'; // Escaped safely
+        let sign = prob.isInclusive ? '\\le' : '\\lt';
+        let signG = prob.isInclusive ? '\\ge' : '\\gt';
         
         if (prob.isGreater) {
             area.innerHTML = `
@@ -341,12 +332,10 @@
         }
     }
 
-
-    // --- FINAL ANSWER ---
     function setupFinalAnswerUI() {
         let html = '';
-        let signL = prob.isInclusive ? '\\le' : '&lt;';
-        let signG = prob.isInclusive ? '\\ge' : '&gt;';
+        let signL = prob.isInclusive ? '\\le' : '\\lt';
+        let signG = prob.isInclusive ? '\\ge' : '\\gt';
         
         if (prob.isGreater) {
             html = `\\( x ${signL} \\) <input type="text" id="final-lower" placeholder="-3/2"> 
@@ -366,10 +355,6 @@
             showFeedback('final', "Excellent! You have successfully solved the absolute value inequation.", true);
             document.getElementById('number-line-container').style.display = 'block';
             drawNumberLine();
-            
-
-[Image of absolute value inequality on a number line]
-
         } else {
             showFeedback('final', "Not quite. Check your algebra or test points again. You can use any of the Methods above to verify your steps.", false);
         }
@@ -418,7 +403,6 @@
         ctx.fill(); ctx.stroke();
     }
 
-    // --- UTILITIES ---
     function showHint(method) {
         let index = hintsState[method];
         let hintsArray = prob.hints[method];
@@ -447,7 +431,6 @@
         if(chartInstance) chartInstance.destroy();
     }
 
-    // Initialize
     window.onload = () => { generateProblem(); };
 </script>
 
