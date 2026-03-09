@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Absolute Value Inequations: 4 Methods (Meriden Edition)</title>
+    <title>Absolute Value Inequations: 3 Methods (Meriden Edition)</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -82,7 +82,6 @@
         <div class="tab active" onclick="switchTab(this, 'method1')">Method 1: Graphing</div>
         <div class="tab" onclick="switchTab(this, 'method2')">Method 2: Number Line Distance</div>
         <div class="tab" onclick="switchTab(this, 'method3')">Method 3: Algebraic Approach</div>
-        <div class="tab" onclick="switchTab(this, 'method4')">Extension: Squaring Both Sides</div>
     </div>
 
     <div id="method1" class="tab-content active">
@@ -97,8 +96,8 @@
         <div class="step-block">
             <p><strong>2. Find the points of intersection:</strong> Where does \( y = \text{LHS} \) meet \( y = \text{RHS} \)?</p>
             <div class="flex-row">
-                \( x_1 = \) <input type="number" id="m1-root1" step="any"> 
-                and \( x_2 = \) <input type="number" id="m1-root2" step="any">
+                \( x_1 = \) <input type="text" id="m1-root1" placeholder="e.g. -3/2"> 
+                and \( x_2 = \) <input type="text" id="m1-root2" placeholder="e.g. 5">
             </div>
             <div class="flex-row">
                 <button onclick="checkMethod1Roots()">Check Intersections</button>
@@ -115,9 +114,9 @@
         <div class="step-block">
             <p><strong>1. Divide through by the coefficient of \(x\):</strong> What is the new center and radius?</p>
             <div class="flex-row">
-                \( \Big| x - \) <input type="number" id="m2-center" step="any" placeholder="center"> \( \Big| \) 
+                \( \Big| x - \) <input type="text" id="m2-center" placeholder="center"> \( \Big| \) 
                 <span id="m2-op-display"></span> 
-                <input type="number" id="m2-radius" step="any" placeholder="radius">
+                <input type="text" id="m2-radius" placeholder="radius">
             </div>
             <div class="flex-row">
                 <button onclick="checkMethod2Distance()">Check Values</button>
@@ -143,26 +142,6 @@
         </div>
     </div>
 
-    <div id="method4" class="tab-content">
-        <h3>Extension: Squaring Both Sides</h3>
-        <p>Because the absolute value is positive and the RHS is positive, we can square both sides to remove the absolute value without altering the inequality.</p>
-        
-        <div class="step-block">
-            <p><strong>1. Expand and form a quadratic:</strong> Bring all terms to the left side to form \( Ax^2 + Bx + C \) <span id="m4-op-display-2"></span> \( 0 \).</p>
-            <div class="flex-row" style="font-size: 1.2em;">
-                <input type="number" id="m4-a"> \( x^2 + \) 
-                <input type="number" id="m4-b"> \( x + \) 
-                <input type="number" id="m4-c"> 
-                <span id="m4-op-display-3" style="font-weight: bold; margin-left: 10px;"></span> \( 0 \)
-            </div>
-            <div class="flex-row">
-                <button onclick="checkMethod4Quadratic()">Check Quadratic</button>
-                <button class="hint-btn" onclick="showHint('m4')">Hint</button>
-            </div>
-            <div id="m4-feedback" class="feedback"></div>
-        </div>
-    </div>
-
     <div class="final-answer-box">
         <h2>Final Answer</h2>
         <p>Use the results from your chosen method to state the final solution for \( x \).</p>
@@ -178,7 +157,20 @@
 <script>
     let chartInstance = null;
     let prob = {};
-    let hintsState = { m1: 0, m2: 0, m3: 0, m4: 0 };
+    let hintsState = { m1: 0, m2: 0, m3: 0 };
+
+    // Function to parse input fields that might contain fractions like "1/2" or "-7/3"
+    function parseInput(val) {
+        if (!val) return NaN;
+        val = val.replace(/\\s/g, ''); // Remove spaces
+        if (val.includes('/')) {
+            let parts = val.split('/');
+            if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1]) && parts[1] !== '0') {
+                return parseFloat(parts[0]) / parseFloat(parts[1]);
+            }
+        }
+        return parseFloat(val);
+    }
 
     // Helper to allow decimal answers instead of strict fraction matches
     function almostEqual(a, b) {
@@ -222,11 +214,6 @@
         let r2 = (k - b) / a;
         prob.roots = [r1, r2].sort((x, y) => x - y);
 
-        // Calculate coefficients for Method 4
-        prob.quadA = a * a;
-        prob.quadB = 2 * a * b;
-        prob.quadC = (b * b) - (k * k);
-
         let termX = a === 1 ? 'x' : `${a}x`;
         let termB = b === 0 ? '' : (b > 0 ? ` + ${b}` : ` - ${Math.abs(b)}`);
         prob.lhsDisplay = `|${termX}${termB}|`;
@@ -236,12 +223,11 @@
         
         setupMethod2UI();
         setupMethod3UI();
-        setupMethod4UI();
         setupFinalAnswerUI();
         resetUI();
         
         // Reset Hints Data
-        hintsState = { m1: 0, m2: 0, m3: 0, m4: 0 };
+        hintsState = { m1: 0, m2: 0, m3: 0 };
         prob.hints = {
             m1: [
                 "To find the intersections algebraically, drop the inequality and solve \\( " + prob.exprDisplay + " = " + k + " \\) and \\( " + prob.exprDisplay + " = -" + k + " \\).",
@@ -254,10 +240,6 @@
             m3: [
                 prob.isGreater ? "For a 'greater than' absolute value, it splits into an OR statement: expression < -k OR expression > k." : "For a 'less than' absolute value, it sandwiches into an AND statement: -k < expression < k.",
                 "Make sure to use \\( " + k + " \\) and \\( -" + k + " \\) as your bounds."
-            ],
-            m4: [
-                "First, square the binomial: \\( (" + prob.exprDisplay + ")^2 = " + (a*a) + "x^2 " + (2*a*b >= 0 ? "+" : "") + (2*a*b) + "x + " + (b*b) + " \\).",
-                "Now subtract \\( " + k + "^2 \\) (which is " + (k*k) + ") from both sides to get zero on the right."
             ]
         };
 
@@ -293,8 +275,8 @@
     }
 
     function checkMethod1Roots() {
-        let r1 = parseFloat(document.getElementById('m1-root1').value);
-        let r2 = parseFloat(document.getElementById('m1-root2').value);
+        let r1 = parseInput(document.getElementById('m1-root1').value);
+        let r2 = parseInput(document.getElementById('m1-root2').value);
         let inputRoots = [r1, r2].sort((x, y) => x - y);
 
         if (almostEqual(inputRoots[0], prob.roots[0]) && almostEqual(inputRoots[1], prob.roots[1])) {
@@ -310,8 +292,8 @@
     }
 
     function checkMethod2Distance() {
-        let centerInput = parseFloat(document.getElementById('m2-center').value);
-        let radiusInput = parseFloat(document.getElementById('m2-radius').value);
+        let centerInput = parseInput(document.getElementById('m2-center').value);
+        let radiusInput = parseInput(document.getElementById('m2-radius').value);
         
         let correctCenter = -prob.b / prob.a;
         let correctRadius = prob.k / prob.a;
@@ -331,20 +313,20 @@
         
         if (prob.isGreater) {
             area.innerHTML = `
-                \\( ${prob.exprDisplay} \\) <input type="number" id="m3-val1"> 
+                \\( ${prob.exprDisplay} \\) <input type="text" id="m3-val1"> 
                 <span style="margin: 0 15px; font-weight: bold;">OR</span> 
-                \\( ${prob.exprDisplay} \\) <input type="number" id="m3-val2">
+                \\( ${prob.exprDisplay} \\) <input type="text" id="m3-val2">
             `;
         } else {
             area.innerHTML = `
-                <input type="number" id="m3-val1"> \\( ${sign} ${prob.exprDisplay} ${sign} \\) <input type="number" id="m3-val2">
+                <input type="text" id="m3-val1"> \\( ${sign} ${prob.exprDisplay} ${sign} \\) <input type="text" id="m3-val2">
             `;
         }
     }
 
     function checkMethod3Setup() {
-        let v1 = parseFloat(document.getElementById('m3-val1').value);
-        let v2 = parseFloat(document.getElementById('m3-val2').value);
+        let v1 = parseInput(document.getElementById('m3-val1').value);
+        let v2 = parseInput(document.getElementById('m3-val2').value);
         
         if (almostEqual(v1, -prob.k) && almostEqual(v2, prob.k)) {
             showFeedback('m3', "Correct setup! Now you just need to solve for \\( x \\) by isolating it to find your final answer.", true);
@@ -353,23 +335,6 @@
         }
     }
 
-    // --- METHOD 4: SQUARING ---
-    function setupMethod4UI() {
-        document.getElementById('m4-op-display-2').innerText = prob.opLaTeX;
-        document.getElementById('m4-op-display-3').innerText = prob.opLaTeX;
-    }
-
-    function checkMethod4Quadratic() {
-        let a = parseFloat(document.getElementById('m4-a').value);
-        let b = parseFloat(document.getElementById('m4-b').value);
-        let c = parseFloat(document.getElementById('m4-c').value);
-
-        if (almostEqual(a, prob.quadA) && almostEqual(b, prob.quadB) && almostEqual(c, prob.quadC)) {
-            showFeedback('m4', "Spot on! You expanded the binomial and subtracted \\( k^2 \\) correctly. Now factor or use the quadratic formula to find the critical points.", true);
-        } else {
-            showFeedback('m4', "Check your expansion. Use the hint button for step-by-step help.", false);
-        }
-    }
 
     // --- FINAL ANSWER ---
     function setupFinalAnswerUI() {
@@ -378,24 +343,24 @@
         let signG = prob.isInclusive ? '\\ge' : '>';
         
         if (prob.isGreater) {
-            html = `\\( x ${signL} \\) <input type="number" id="final-lower" step="any"> 
+            html = `\\( x ${signL} \\) <input type="text" id="final-lower" placeholder="e.g. -3/2"> 
                     <span style="margin: 0 15px; font-weight: bold;">OR</span> 
-                    \\( x ${signG} \\) <input type="number" id="final-upper" step="any">`;
+                    \\( x ${signG} \\) <input type="text" id="final-upper" placeholder="e.g. 5">`;
         } else {
-            html = `<input type="number" id="final-lower" step="any"> \\( ${signL} x ${signL} \\) <input type="number" id="final-upper" step="any">`;
+            html = `<input type="text" id="final-lower" placeholder="e.g. -3/2"> \\( ${signL} x ${signL} \\) <input type="text" id="final-upper" placeholder="e.g. 5">`;
         }
         document.getElementById('final-input-area').innerHTML = html;
     }
 
     function checkFinalAnswer() {
-        let lower = parseFloat(document.getElementById('final-lower').value);
-        let upper = parseFloat(document.getElementById('final-upper').value);
+        let lower = parseInput(document.getElementById('final-lower').value);
+        let upper = parseInput(document.getElementById('final-upper').value);
 
         if (almostEqual(lower, prob.roots[0]) && almostEqual(upper, prob.roots[1])) {
             showFeedback('final', "Excellent! You have successfully solved the absolute value inequation.", true);
             document.getElementById('number-line-container').style.display = 'block';
             drawNumberLine();
-                    } else {
+        } else {
             showFeedback('final', "Not quite. Check your algebra or test points again. You can use any of the Methods above to verify your steps.", false);
         }
     }
@@ -459,18 +424,17 @@
 
     function showFeedback(type, msg, isCorrect) {
         let fb = document.getElementById(`${type}-feedback`);
-        // If it's correct, overwrite hints. If incorrect, prepend it so hints aren't lost.
         if (isCorrect) {
             fb.innerHTML = msg;
         } else {
-            fb.innerHTML = `<div>${msg}</div>` + fb.innerHTML.replace(/<div>Incorrect.*?<\/div>/g, '');
+            fb.innerHTML = `<div>${msg}</div>` + fb.innerHTML.replace(/<div>Incorrect.*?<\\/div>/g, '');
         }
         fb.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
         fb.style.display = 'block';
     }
 
     function resetUI() {
-        document.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
+        document.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
         document.querySelectorAll('.feedback').forEach(fb => { fb.style.display = 'none'; fb.innerHTML = ''; });
         document.getElementById('chart-container').style.display = 'none';
         document.getElementById('number-line-container').style.display = 'none';
